@@ -30,8 +30,8 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 					 	count += 1
 					 	# If at the end of the list save the last sub region
 					 	if i == len(mylist)-1:
-					 		end_pos = int(start_pos)+int(count)
-					 		length = end_pos-int(start_pos)
+							end_pos = int(start_pos)+int(count)
+							length = end_pos-int(start_pos)
 							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length]
 							MeanList.append(m_line)
 							
