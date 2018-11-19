@@ -5,13 +5,11 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 	Coveragesum=0
 	MeanList = []
 	end_pos = 0
-
 	count = 0 # used to caluculate end position: start + count 
 	
 	# If only one coverage element print the one base pair region with chromosom, start, stop, length and mean=coverage value in this case
 	if len(mylist) == 1:
-		MeanList.append(region_info + [int(start_pos), int(start_pos)+1, int(mylist[0])/1, 1])
-		print(region_info + [int(start_pos), int(start_pos)+1, int(mylist[0])/1, 1])
+		MeanList.append(region_info + [int(start_pos), int(start_pos)+1, int(mylist[0]), 1])
 
 	# If the list contains more than one per base coverage values, go through all elements in the list. Save the previous element each time. 
 	# Divide up the regions by comparing the current and the previous elements coverage value. If both over or below keep in same group, if on different sides of the 
@@ -34,15 +32,15 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 					 	if i == len(mylist)-1:
 					 		end_pos = int(start_pos)+int(count)
 					 		length = end_pos-int(start_pos)
-							MeanList.append(region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),0), length])
-
+							MeanList.append(region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length])
+							
 					# If the previous element are instead below, save the previous region in the mean list
 					else:
 						Coveragesum += int(previous_element) 
 						count+=1
 						end_pos = int(start_pos)+int(count)
 						length = end_pos-int(start_pos) 
-						MeanList.append(region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),0), length])
+						MeanList.append(region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length])
 						start_pos = int(end_pos)
 						Coveragesum = 0
 						count=0
