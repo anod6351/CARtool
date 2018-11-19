@@ -26,10 +26,10 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 
 					# If previous element also over threshold add previous element to a temporary coverage sum variable to calculate mean coverage for each new sub region
 					if int(previous_element) < int(Xcov):
-					 	Coveragesum += int(previous_element)
-					 	count += 1
-					 	# If at the end of the list save the last sub region
-					 	if i == len(mylist)-1:
+						Coveragesum += int(previous_element)
+						count += 1
+						# If at the end of the list save the last sub region
+						if i == len(mylist)-1:
 							end_pos = int(start_pos)+int(count)
 							length = end_pos-int(start_pos)
 							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length]
