@@ -68,12 +68,12 @@ if args.phred_score==None or not(str(args.phred_score[0])=='all'):
 
 
 	# Deal with the region file being one based at the start position
-	regions_file = open(args.Regions, 'r')
-	regions_fixed_file = [] 
-	for line in regions_file:
-		element=line.split('\t')
-		regions_fixed_file.append([element[0], int(element[1])-1, element[2], element[3]])
-	Region_fixed = pybedtools.BedTool(regions_fixed_file)
+	#regions_file = open(args.Regions, 'r')
+	#regions_fixed_file = [] 
+	#for line in regions_file:
+	#	element=line.split('\t')
+	#	regions_fixed_file.append([element[0], int(element[1])-1, element[2], element[3]])
+	#Region_fixed = pybedtools.BedTool(regions_fixed_file)
 
 
 	# Create bedtool objects
@@ -88,7 +88,7 @@ if args.phred_score==None or not(str(args.phred_score[0])=='all'):
 	# Create per base/amplicon coverage
 	print("Creating per base/amplicon coverage ...")
 	import Detailed_generator
-	detailed_list = Detailed_generator.detail(Region_fixed, Reads)
+	detailed_list = Detailed_generator.detail(Regions, Reads) ############ Regions_fixed if 1 based start position
 
 
 ########################## Phred score filtering of bam file (OPTIONAL) ################################################################################### 
@@ -164,7 +164,6 @@ Info=[] # Gives the chromosome, start and stop for each subregion in the combine
 # Create a list that only containing the region name column
 Regions_list=[]
 for line in Regions:
-	print(line[3])
 	Regions_list.append(line[3])
 
 # Combine rows in the bedfile that has the same region name before the first dot as separator. Example: the rows Gene1.Exon.2 and Gene1.Exon.3 will be merged
@@ -217,7 +216,7 @@ if args.ExonTranscript: # Adds exon number, transcript and chromosome
 else: # Only add the chromosome not exon and transcript
 	for element in Regions_list:
 		info_temp = element.split('.')
-		info_temp = [info_temp[5]]
+		info_temp = [info_temp[1]] ##################5 innan, annars 1 
 		info_list.append(info_temp)	
 	mean_index=3
 
@@ -674,7 +673,7 @@ if args.figures == True:
 			for i in range(len(data)):
 				rows.append('R' +  str(i+1))
 
-			# If low regions are sent as input, add blue color to any line in the table containg a known to be low region
+			# If low regions are sent as input, add red color to any line in the table containg a known to be low region
 			color=[]
 			line_index=0
 			index_low=0
