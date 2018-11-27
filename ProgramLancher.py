@@ -121,7 +121,7 @@ if args.phred_score:
 
 	command = "samtools view -bq " + str(phred_score) + " " + str(args.Reads) + " > CAR_output/filtered_bam.bam"
 	p = os.popen(command)
-	p.wait()
+	p.communicate()
 	
 	Reads_filtered = pybedtools.BedTool(open("CAR_output/filtered_bam.bam", "r"))
 
