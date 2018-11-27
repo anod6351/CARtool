@@ -128,9 +128,9 @@ if args.phred_score:
 	if str(args.phred_score[0])=="all":
 		Regions =pybedtools.BedTool(args.Regions)
 		import Detailed_generator
-		detailed_list = Detailed_generator.detail(Regions, Reads_filtered)
+		detailed_list = Detailed_generator.detail(Region_fixed, Reads_filtered) #######Depends on the bed file
 	else:
-		detailed_list_phredfilter = Detailed_generator.detail(Regions, Reads_filtered)
+		detailed_list_phredfilter = Detailed_generator.detail(Region_fixed, Reads_filtered) #######Depends on the bed file
 
 ############################# Filter bam file with reads to only contain + or - strand (OPTIONAL) #################################################
 
