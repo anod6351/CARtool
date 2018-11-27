@@ -121,7 +121,7 @@ if args.phred_score:
 		Region_fixed = pybedtools.BedTool(regions_fixed_file)
 
 	command = "samtools view -bq " + str(phred_score) + " " + str(args.Reads) + " > CAR_output/filtered_bam.bam"
-	p = subprocess.popen(command, shell=True)
+	p = subprocess.Popen(command, shell=True)
 	p.communicate()
 	
 	Reads_filtered = pybedtools.BedTool(open("CAR_output/filtered_bam.bam", "r"))
