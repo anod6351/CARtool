@@ -124,7 +124,7 @@ if args.phred_score:
 	p = subprocess.Popen(command, shell=True)
 	p.communicate()
 	
-	Reads_filtered = pybedtools.BedTool(open("CAR_output/filtered_bam.bam", "r"))
+	Reads_filtered = pybedtools.BedTool(open("CAR_output/filtered_bam.bam", "r", encoding="ascii"))
 
 	# Compute per base coverage lists
 
