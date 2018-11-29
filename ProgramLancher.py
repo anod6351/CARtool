@@ -120,7 +120,7 @@ if args.phred_score:
 
 		Region_fixed = pybedtools.BedTool(regions_fixed_file)
 
-	command = "samtools mpileup -Q " + str(phred_score) + " " + str(args.Reads) + " > CAR_output/filtered_bam.bam"
+	command = "samtools mpileup -Q " + str(phred_score) + " " + str(args.Reads) + " -o CAR_output/filtered.bam"
 	p = subprocess.Popen(command, shell=True)
 	p.communicate()
 	
