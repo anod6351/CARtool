@@ -90,7 +90,7 @@ if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
 	if args.ownInput:
 		command = args.ownInput
 	else:
-		command = "samtools depth -a -d 20000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
+		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
 	s.communicate()
 
@@ -138,7 +138,7 @@ if args.phred_score_mapQ:
 	if args.ownInput:
 		command = args.ownInput
 	else:
-		command = "samtools depth -a -d 20000 -b " + str(args.Regions) + " -Q " + str(phred_score) + " -q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
+		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " -Q " + str(phred_score) + " -q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
 	s.communicate()
 
@@ -167,7 +167,7 @@ if args.strandSpecific:
 	if args.ownInput:
 		depthCommand = args.ownInput
 	else:
-		depthCommand = "samtools depth -a -d 20000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) 
+		depthCommand = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) 
 	command_1 = "samtools view -F 0x10 -b " + str(args.Reads) + " | " + depthCommand + "_cov_positive.tsv"
 	command_2 = "samtools view -f 0x10 -b " + str(args.Reads) + " | " + depthCommand + "_cov_negative.tsv"
 	s1 = subprocess.Popen(command_1)
