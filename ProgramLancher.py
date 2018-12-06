@@ -78,6 +78,9 @@ with open(str(args.Regions), "r") as file:
 		Regions.append([element[0], element[1],  element[2], element[3]])
 file.close()
 
+import fixedbedfile
+Regions = fixedbedfile.changestart(args.Regions)
+
 if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
 
 	# Set the data type variable to raw data, this will be shown in the statistics table
@@ -87,7 +90,7 @@ if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
 	if args.ownInput:
 		command = args.ownInput
 	else:
-		command = "samtools depth -a -d 20000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
+		command = "samtools depth -a -d 20000 -b " + str(Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
 	s.communicate()
 
@@ -135,7 +138,7 @@ if args.phred_score_mapQ:
 	if args.ownInput:
 		command = args.ownInput
 	else:
-		command = "samtools depth -a -d 20000 -b " + str(args.Regions) + " -Q " + str(phred_score) + " -q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
+		command = "samtools depth -a -d 20000 -b " + str(Regions) + " -Q " + str(phred_score) + " -q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
 	s.communicate()
 
