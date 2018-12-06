@@ -1,6 +1,6 @@
 def changestart(filepath):
 
-	with open('filepath', 'r') as regions_file:
+	with open(filepath, 'r') as regions_file:
 		with open('regions_fixed_file.bed', 'w') as myfile:
 			for line in regions_file:
 				element=line.split('\t')
