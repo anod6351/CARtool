@@ -1,41 +1,34 @@
-def detail(Regions, Reads):
+def detail_samtools(Regions, Read_depth):
 
-	import pybedtools
-
-	####################### Computations of per base/amplicon coverage using bedtools ##############################
-	# Compute the per base coverage for the regions in the bedfile, columns in Region_coverage: chromosome, region start, region stop, name, index number of base (what base in the region), coverage
-	
-	Region_coverage_perbase = Regions.coverage(Reads, d=True)
-
-	# create a detailed list
+	# create a detailed list with all depth values from the same region in a sub list. From samtools depth calculations
+	# samtools generates a depth file with: chr, position and coverage depth value 
+	# Regeions comes from the bed file with chr, start, stop, region name
 
 	detailed =[]
 	list_temp=[]
-	previous_gene = Region_coverage_perbase[0][3]
-	print(previous_gene)
+	previous_chr = Read_depth[0][0]
+	Region_row = 0
 	count=0
-	size_list = len(Region_coverage_perbase)
-	print(size_list)
+	index = 0
+	size_list = len(Read_depth)
 
-	for line in Region_coverage_perbase:
-		count+=1
-
-		if str(line[3]) == str(previous_gene):
-			list_temp.append(line[5])
+	for line in Read_depth:
+		Region_row = Regions[index]
+		if str(line[0]) == str(previous_chr) and (int(line[1])) <= int(Region_row[2]):
+			list_temp.append(line[2])
 
 		else:
-			previous_gene=line[3]
+			previous_chr=line[0]
 			detailed.append(list_temp)
 			list_temp=[]
-			list_temp.append(line[5])
-			
+			list_temp.append(line[2])
+			index+=1
+
+		count+=1
 		if count == size_list:
 			detailed.append(list_temp)
 
 	return detailed
-
-
-
 
 
 
