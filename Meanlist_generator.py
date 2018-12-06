@@ -32,7 +32,7 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 						if i == len(mylist)-1:
 							end_pos = int(start_pos)+int(count)
 							length = end_pos-int(start_pos)
-							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length]
+							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 2), length]
 							MeanList.append(m_line)
 							
 					# If the previous element are instead below, save the previous region in the mean list
@@ -41,7 +41,7 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 						count+=1
 						end_pos = int(start_pos)+int(count)
 						length = end_pos-int(start_pos) 
-						m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 0), length]
+						m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length), 2), length]
 						MeanList.append(m_line)
 						start_pos = int(end_pos)
 						Coveragesum = 0
@@ -58,7 +58,7 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 						if i == len(mylist)-1:
 							end_pos = int(start_pos)+int(count)
 							length = end_pos-int(start_pos)
-							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),0), length]
+							m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),2), length]
 							MeanList.append(m_line)
 
 					# If the previous and current is on opposite sides of the threshold save the new sub region and start a new region with the current element
@@ -67,7 +67,7 @@ def Meanfunction(mylist, Xcov, start_pos, region_info):
 						count+=1
 						end_pos = int(start_pos)+int(count)
 						length = end_pos-int(start_pos)
-						m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),0), length]
+						m_line = region_info + [int(start_pos), end_pos, round(float(Coveragesum)/float(length),2), length]
 						MeanList.append(m_line)
 						start_pos = int(end_pos)
 						Coveragesum = 0
