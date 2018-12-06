@@ -72,11 +72,11 @@ s.communicate()
 
 # Open the Region bed file and convert into a list
 Regions = []
-with open(str(args.Regions), "r") as file:
-	for line in file:
+with open(str(args.Regions), "r") as myfile:
+	for line in myfile:
 		element = line.strip('\n').split('\t')
 		Regions.append([element[0], element[1],  element[2], element[3]])
-file.close()
+myfile.close()
 
 import fixedbedfile
 Regions = fixedbedfile.changestart(args.Regions)
@@ -96,11 +96,11 @@ if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
 
 	# Open the filtered coverage file generated with samtools depth and convert into a list
 	Reads_coverage = []
-	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv", "r") as file:
-		for line in file:
+	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv", "r") as myfile:
+		for line in myfile:
 			element = line.strip('\n').split('\t')
 			Reads_coverage.append([element[0], element[1], element[2]])
-	file.close()
+	myfile.close()
 
 	# Generate a detailed list with sublists of coverage values from the same region in the bed file. 
 	import Detailed_generator
@@ -144,11 +144,11 @@ if args.phred_score_mapQ:
 
 	# Open the filtered coverage file generated with samtools depth and convert into a list
 	Reads_filtered = []
-	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv", "r") as file:
-		for line in file:
+	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv", "r") as myfile:
+		for line in myfile:
 			element = line.strip('\n').split('\t')
 			Reads_filtered.append([element[0], element[1], element[2]])
-	file.close()
+	myfile.close()
 
 
 	# Generate a detailed list with sublists of coverage values from the same region in the bed file. 
@@ -177,19 +177,19 @@ if args.strandSpecific:
 
 	# Open the forward coverage file generated with samtools depth and convert into a list
 	Reads_positive = []
-	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv", "r") as file:
-		for line in file:
+	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv", "r") as myfile:
+		for line in myfile:
 			element = line.strip('\n').split('\t')
 			Reads_positive.append([element[0], element[1], element[2]])
-	file.close()
+	myfile.close()
 
 	# Open the reverse coverage file generated with samtools depth and convert into a list
 	Reads_negative = []
-	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_negative.tsv", "r") as file:
-		for line in file:
+	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_negative.tsv", "r") as myfile:
+		for line in myfile:
 			element = line.strip('\n').split('\t')
 			Reads_negative.append([element[0], element[1], element[2]])
-	file.close()
+	myfile.close()
 
 
 	# Create per position coverage for the strand specific bam files 
