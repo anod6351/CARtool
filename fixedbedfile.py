@@ -1,3 +1,4 @@
+# To change the start position in a bedfile from 1-based to 0-based if needed. CARtool only takes 0-based start positions
 def changestart(filepath):
 
 	with open(filepath, 'r') as regions_file:
