@@ -78,8 +78,8 @@ with open(str(args.Regions), "r") as myfile:
 		Regions.append([element[0], element[1],  element[2], element[3]])
 myfile.close()
 
-#import fixedbedfile
-#Regions = fixedbedfile.changestart(args.Regions)
+import fixedbedfile
+fixedbedfile.changestart(args.Regions)
 
 if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
 
