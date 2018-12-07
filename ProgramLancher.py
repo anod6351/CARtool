@@ -263,7 +263,7 @@ if args.ExonTranscript: # Adds exon number, transcript and chromosome
 else: # Only add the chromosome not exon and transcript, changed from regions_list to regions i bed filen
 	for element in Regions:
 		info_temp = element[0]
-		info_list.append(info_temp)	
+		info_list.append([info_temp])	
 	mean_index=3
 
 
