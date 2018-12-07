@@ -260,10 +260,9 @@ if args.ExonTranscript: # Adds exon number, transcript and chromosome
 		info_list.append(info_temp)
 	mean_index=5
 
-else: # Only add the chromosome not exon and transcript
-	for element in Regions_list:
-		info_temp = element.split('.')
-		info_temp = [info_temp[5]]
+else: # Only add the chromosome not exon and transcript, changed from regions_list to regions i bed filen
+	for element in Regions:
+		info_temp = element[0]
 		info_list.append(info_temp)	
 	mean_index=3
 
