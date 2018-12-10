@@ -138,7 +138,7 @@ if args.phred_score_mapQ:
 	if args.ownInput:
 		command = args.ownInput
 	else:
-		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " -Q " + str(phred_score) + " -q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
+		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " -q " + str(phred_score) + " -Q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
 	s.communicate()
 
