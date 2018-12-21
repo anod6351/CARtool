@@ -1,9 +1,9 @@
 # Program lancher for Coverage Analysis Report, CAR
 
 import argparse
-import sys
+#import sys
 import csv
-import time
+#import time
 import subprocess
 
 ##############################  Parameter input #########################################
@@ -81,8 +81,8 @@ myfile.close()
 import fixedbedfile
 fixedbedfile.changestart(args.Regions)
 
-if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
-
+#if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
+if args.phred_score_mapQ and not((str(args.phred_score_mapQ[0] == 'all')) or args.phred_score_mapQ == False:
 	# Set the data type variable to raw data, this will be shown in the statistics table
 	dataType = 'Raw'
 
@@ -222,7 +222,7 @@ if args.combineRows:
 	RegionNames, detailed_list_formated, splice = CombineRows_generator.CombineRowsList(detailed_list, Regions_list)
 
 	# If phred score filtering option is turned on the phred filtered detailed coverage list is fomrated by merging rows  
-	if args.phred_score and not(args.phred_score[0]=='all'):
+	if args.phred_score_mapQ and not(args.phred_score_mapQ[0]=='all'):
 		PhredRegionNames, det_list_filtered_formated, splice_phred = CombineRows_generator.CombineRowsList(detailed_list_filter, Regions_list)
 
 	if args.strandSpecific:
