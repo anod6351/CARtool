@@ -85,7 +85,7 @@ if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ) == 'all'):
 
 	# Calculate the coverage depth with samtools depth
 	if args.ownInput:
-		command = args.ownInput
+		command = args.ownInput + " -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
 	else:
 		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
@@ -133,7 +133,7 @@ if args.phred_score_mapQ:
 
 	# Calculate the coverage depth with samtools depth
 	if args.ownInput:
-		command = args.ownInput
+		command = args.ownInput + "-b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	else:
 		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " -q " + str(phred_score) + " -Q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
@@ -161,17 +161,29 @@ if args.phred_score_mapQ:
 # These strand specific detailed coverage lists will be used to create statistic tables containing coverage breadth values at the three threshold values
 if args.strandSpecific:
 	print("Creates strand specific bam files for the additional statistics table ...")
-	if args.ownInput:
-		depthCommand = args.ownInput
-	else:
-		depthCommand = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) 
-	command_1 = "samtools view -F 0x10 -b " + str(args.Reads) + " | " + depthCommand + "_cov_positive.tsv"
-	command_2 = "samtools view -f 0x10 -b " + str(args.Reads) + " | " + depthCommand + "_cov_negative.tsv"
-	s1 = subprocess.Popen(command_1)
+	
+	# Create the strand specific bam files
+	command_1 = "samtools view -F 0x10 -b " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/outStrandPos.bam"
+	command_2 = "samtools view -f 0x10 -b " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/outStrandNeg.bam"
+	
+	s1 = subprocess.Popen(command_1, shell=True)
 	s1.communicate()
-	s2 = subprocess.Popen(command_2)
-	s2.communnicate()
-
+	s2 = subprocess.Popen(command_2, shell=True)
+	s2.communicate()
+	
+	# Compute coverage depth for the strand specific bam files
+	if args.ownInput:
+		depthCommand1 = args.ownInput + " -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandPos.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv"
+		depthCommand2 = args.ownInput + " -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandNeg.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_negative.tsv"
+	else:
+		depthCommand1 = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandPos.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv"
+		depthCommand2 = "samtools depth -a -d 30000 -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandNeg.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_negative.tsv"
+	
+	s1 = subprocess.Popen(depthCommand1, shell=True)
+	s1.communicate()
+	s2 = subprocess.Popen(depthCommand2, shell=True)
+	s2.communicate()
+	
 	# Open the forward coverage file generated with samtools depth and convert into a list
 	Reads_positive = []
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv", "r") as myfile:
@@ -257,7 +269,7 @@ if args.ExonTranscript: # Adds exon number, transcript and chromosome
 		info_list.append(info_temp)
 	mean_index=5
 
-else: # Only add the chromosome not exon and transcript, changed from regions_list to regions i bed filen
+else: # Only add the chromosome not exon and transcript
 	for element in Regions:
 		info_temp = element[0]
 		info_list.append([info_temp])	
