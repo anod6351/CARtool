@@ -1,9 +1,7 @@
 # Program lancher for Coverage Analysis Report, CAR
 
 import argparse
-#import sys
 import csv
-#import time
 import subprocess
 
 ##############################  Parameter input #########################################
@@ -78,11 +76,10 @@ with open(str(args.Regions), "r") as myfile:
 		Regions.append([element[0], element[1],  element[2], element[3]])
 myfile.close()
 
-import fixedbedfile
-fixedbedfile.changestart(args.Regions)
 
-#if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ == 'all')):
-if args.phred_score_mapQ and not((str(args.phred_score_mapQ[0] == 'all')) or args.phred_score_mapQ == False:
+
+if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ) == 'all'):
+	
 	# Set the data type variable to raw data, this will be shown in the statistics table
 	dataType = 'Raw'
 
@@ -204,7 +201,7 @@ if args.strandSpecific:
 # detailed coverage result list and a combined region name list. The region name in the bedfile must be seperated with a '.' .Example: gene1.exon.2 etc. 
 # for this function
 
-det_list_phred_formated =[]
+det_list_filtered_formated =[]
 splice=[] # Gives the indices of the subregions within the combined rows, this is used for the region figure
 Info=[] # Gives the chromosome, start and stop for each subregion in the combined row region
 
@@ -454,7 +451,7 @@ else:
 	
 import Statistics_generator
 # Compute statistics table 	
-stat_table, stat_table_phred, validation_list = Statistics_generator.stat_table(detailed_list_stat, Stat_table_names, args.validation, phred_score, detailed_filt_stat, args.X_Cut_off_list, Region_info, dataType)    
+stat_table, stat_table_filter, validation_list = Statistics_generator.stat_table(detailed_list_stat, Stat_table_names, args.validation, phred_score, detailed_filt_stat, args.X_Cut_off_list, Region_info, dataType)    
 # Compute the strand specific statistics tables
 if args.strandSpecific:
 	stat_table_positive, stat_table_phred_positive, validation_list_positive = Statistics_generator.stat_table(detailed_positive, Stat_table_names, args.validation, False, [], args.X_Cut_off_list, Region_info, dataType)
@@ -575,7 +572,7 @@ if args.figures == True:
 	import matplotlib
 	matplotlib.use('Agg')
 	import matplotlib.pyplot as plt
-	import Tkinter
+	import tkinter
 	import PieChart
 
 	fig = plt.figure()
@@ -604,7 +601,7 @@ if args.figures == True:
 			# when 4 pie charts exists in the figure they are saved in an indexed pdf file
 			if index_order==4:
 				# Save the pie charts as a PDF 
-				fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '/Cov_pie_' + str(image_count) + '.pdf')
+				fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_pie_' + str(image_count) + '.pdf')
 				fig = plt.figure()
 				index_order=0
 				image_count+=1
@@ -614,7 +611,7 @@ if args.figures == True:
 
 	# Make sure that the last image is printed even if there is less that 4 pie charts in it
 	if not(fig == None): 
-		fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '/Cov_pie_' + str(image_count) + '.pdf')
+		fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_pie_' + str(image_count) + '.pdf')
 
 ############################################# Bar plot
 
@@ -643,7 +640,7 @@ if args.figures == True:
 				
 				# When 4 bar diagrams exists in fig they are saved in a indexed pdf file
 				if index_order==4:
-					fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '/Cov_bar_' + str(image_count) + '.pdf')
+					fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_bar_' + str(image_count) + '.pdf')
 					fig = plt.figure() # Create a new figure to draw the pie charts in
 					index_order=0
 					image_count+=1
@@ -654,7 +651,7 @@ if args.figures == True:
 
 		# Make sure that the last image is printed even if there is less that 4 pie charts in it
 		if not(fig == None): 
-			fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '/Cov_bar_' + str(image_count) + '.pdf')
+			fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_bar_' + str(image_count) + '.pdf')
 
 	###### Per region coverage plot ###############################################################################################################
 
