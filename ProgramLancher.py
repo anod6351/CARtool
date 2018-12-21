@@ -330,9 +330,14 @@ if args.lowRegions:
 	
 	#Extract the name of the low regions
 	name_lowRegions=[]
-	for line in lowRegions:
-		name_lowRegions.append(line[3])
+	lowRegions=[]
+	with open(str(args.lowRegions), "r") as myfile:
+		for line in myfile:
+			element = line.strip('\n').split('\t')
+			name_lowRegions.append(element[3])
+			lowRegions.append([element[0], element[1], element[2], element[3]])
 
+	myfile.close()
 
 	# Save the inices of the low regions this will be added to the mean list and the region figure
 	index=0
@@ -388,11 +393,16 @@ if args.lowRegions:
 
 if args.hotspot:
 	name_hotspots=[]
+	hotspots=[]
 
 	# Extract the name of the hotspot bed list
-	for line in hotspots:
-		name_hotspots.append(line[3])
-
+	with open(str(args.hotspot), "r") as myfile:
+		for line in myfile:
+			element = line.strip('\n').split('\t')
+			name_lowRegions.append(element[3])
+			hotspots.append([element[0], element[1], element[2], element[3]])
+	myfile.close()
+	
 	index=0
 	count=0
 	index_hotspot=0
