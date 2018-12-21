@@ -6,7 +6,7 @@ def Region_generator_plot(det_list_row, Regions, Xcov, index, fig, splice, hotsp
 	import matplotlib.pyplot as plt
 	from matplotlib.collections import PatchCollection
 	import matplotlib.patches as mpatches 
-	import Tkinter
+	import tkinter
 	import matplotlib._color_data as mcd
 	import matplotlib.lines as lines
 	import matplotlib.text as text
