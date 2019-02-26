@@ -9,11 +9,10 @@ import subprocess
 parser = argparse.ArgumentParser()
 
 # Mandatory input, creates:
-# 1. Two coverage lists (short and full lists) with subregions below or above the first coverage depth threshold in the X_cut_off_list  
-# 2. A coverage breadth table with percentage at or over the values in the X_cut_off_list
-# 3. A Logg file
-# 4. Create a folder where the output will be saved, this will also be incorparated in the file names generated to prevent overwritting existing files
-# 5. Who run the analysis is needed to keep track of the analysis in the Logg file
+# 1. Two coverage depth lists (short and full lists) of subregions below or above the first coverage depth threshold in the X_cut_off_list  
+# 2. A coverage breadth table with percentage of values equal and above the thresholds in the X_cut_off_list
+# 3. A Logg file, the name of who run CAR is needed as input
+# 4. Create a folder where the output will be saved and choose file name
 
 parser.add_argument("-a","--Regions", help="Write the path to the Bed file")
 parser.add_argument("-b","--Reads", help="Write the path to the Bam file")
@@ -23,13 +22,13 @@ parser.add_argument("-e", "--executedBy", help="Enter name of person that run th
 
 # Additional optional input settings:
 # filtering of reads, mapQ and Phred score (Q score)
-# Given input two samtools that generates a coverage depth list, be careful with this option the output should be a samtools depth file with: chr, start position and coverage depth   
+# Own command to samtools   
 # validation list, contains regions with coverage depth values below 95% at first threshold
-# combine rows, combine ROI from the same for example gene. OBS! ROI name in bedfile must start with the name to be sorted on folowed by a dot. Example: Gene1.Chr1....
+# combine rows, combine ROI from the same for example gene
 # Strand Specific reads are used two generate two additonal coverage breadth tables one for the reversed and one for the forward reads
 # Figures, pie chart, bar plot and a regions plot. Obs! The bar plot is only generated if combineRows is activated
 # Hotspots, add positions of interest in the region figure. These will be marked by an arrow in the region figure
-# Low regions, add regions known to be low in the full and short mean list as an extra column known = Yes or No. Yes if known to be low.
+# Low regions, add regions known to be low in the full and short mean list as an extra column known = Yes or No. Yes if known to be low. Marked with a red color in the region position plot
 # Exon and Transcript information in the mean coverage lists
 # Detailed coverage saves the per base coverage depth list as a file
 
@@ -39,7 +38,7 @@ parser.add_argument("-v", "--validation", action="store_true", help="turn valida
 parser.add_argument("-k", "--combineRows", action="store_true", help="turn per gene option on, combines rows in the bedfile from the same gene for example")
 parser.add_argument("-s","--strandSpecific", action ="store_true", help="Create an additional statistics table with forward and reverse read coverage calculated seperatly")
 parser.add_argument("-f", "--figures", action="store_true", help="Create figures") 
-parser.add_argument("-t", "--hotspot", help="Create figures")
+parser.add_argument("-t", "--hotspot", help="Add arrows to the region plot figure to indicate positions of interest")
 parser.add_argument("-l", "--lowRegions", help="List of known to be low regions")
 parser.add_argument("-n", "--ExonTranscript", action="store_true", help="adds exon and transcript information to the low coverage mean region list")
 parser.add_argument("-d", "--detailedCoverage", action="store_true", help="Outputs a per position coverage depth list of the region bed file")
@@ -66,7 +65,6 @@ s = subprocess.Popen(command, shell=True)
 s.communicate()
 
 ####################### Create per base pair coverage list ###################################################################
-# The script uses bedtools and formats the output so that each row contains all coverage values from the corresponding region (row) in the bedfile.
 
 # Open the Region bed file and convert into a list
 Regions = []
@@ -78,12 +76,13 @@ myfile.close()
 
 
 
-if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ) == 'all'):
-	
-	# Set the data type variable to raw data, this will be shown in the statistics table
-	dataType = 'Raw'
+# To run the program with non-filtered bam file or your own samtool command as main option
+if args.phred_score_mapQ == None or not(str(args.phred_score_mapQ[0]) == 'all'):
 
-	# Calculate the coverage depth with samtools depth
+	# Set the data type variable to raw data, this will be shown in the statistics table
+	dataType = ''
+
+	# Calculate the coverage depth with samtools depth, eihter with own command from the user or by the default command
 	if args.ownInput:
 		command = args.ownInput + " -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_coverage.tsv"
 	else:
@@ -113,7 +112,7 @@ detailed_list_filter=[]
 phred_score = False
 mapQ = 0
 
-# Check the type of phred score setting, save the phred score as a variable
+# Check the type of filtering setting, save the phred score and mapQ as variables
 if args.phred_score_mapQ:
 	
 	if str(args.phred_score_mapQ[0]) == 'all':
@@ -128,12 +127,12 @@ if args.phred_score_mapQ:
 		print("Creates phred score and mapQ filtered coverage values for the statistics table ...")
 		phred_score = args.phred_score_mapQ[0]
 		mapQ = args.phred_score_mapQ[1]
-		dataType='Filtered'
+		dataType=''
 
 
 	# Calculate the coverage depth with samtools depth
 	if args.ownInput:
-		command = args.ownInput + "-b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
+		command = args.ownInput + " -b " + str(args.Regions) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	else:
 		command = "samtools depth -a -d 30000 -b " + str(args.Regions) + " -q " + str(phred_score) + " -Q " + str(mapQ) + " " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_filtered_coverage.tsv"
 	s = subprocess.Popen(command, shell=True)
@@ -161,17 +160,14 @@ if args.phred_score_mapQ:
 # These strand specific detailed coverage lists will be used to create statistic tables containing coverage breadth values at the three threshold values
 if args.strandSpecific:
 	print("Creates strand specific bam files for the additional statistics table ...")
-	
-	# Create the strand specific bam files
+
 	command_1 = "samtools view -F 0x10 -b " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/outStrandPos.bam"
 	command_2 = "samtools view -f 0x10 -b " + str(args.Reads) + " > " + str(args.output_folder_name[0]) + "/outStrandNeg.bam"
-	
 	s1 = subprocess.Popen(command_1, shell=True)
 	s1.communicate()
 	s2 = subprocess.Popen(command_2, shell=True)
 	s2.communicate()
-	
-	# Compute coverage depth for the strand specific bam files
+
 	if args.ownInput:
 		depthCommand1 = args.ownInput + " -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandPos.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv"
 		depthCommand2 = args.ownInput + " -b " + str(args.Regions) + " " + str(args.output_folder_name[0]) + "/outStrandNeg.bam > " + str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_negative.tsv"
@@ -183,7 +179,7 @@ if args.strandSpecific:
 	s1.communicate()
 	s2 = subprocess.Popen(depthCommand2, shell=True)
 	s2.communicate()
-	
+
 	# Open the forward coverage file generated with samtools depth and convert into a list
 	Reads_positive = []
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + "_cov_positive.tsv", "r") as myfile:
@@ -206,12 +202,10 @@ if args.strandSpecific:
 
 	detailed_list_negative = Detailed_generator.detail_samtools(Regions, Reads_negative)
 
-
 ###################### CombineRows (OPTIONAL) ################################################################################################## 
-# Merge rows in the per position coverage lists (detailed lists) so that ALL coverage values from 
+# Merge rows in the per position coverage depth lists (detailed lists) so that ALL coverage values from 
 # the same, for example, gene will be in the same row. This is essential for per gene calculations. The output will be a new formated 
-# detailed coverage result list and a combined region name list. The region name in the bedfile must be seperated with a '.' .Example: gene1.exon.2 etc. 
-# for this function
+# detailed coverage result list and a combined region name list. The region name in the bedfile must be seperated with a '.' .Example: gene1.exon.2 etc.
 
 det_list_filtered_formated =[]
 splice=[] # Gives the indices of the subregions within the combined rows, this is used for the region figure
@@ -230,20 +224,20 @@ if args.combineRows:
 	# Formats the detailed coverage list by combining rows
 	RegionNames, detailed_list_formated, splice = CombineRows_generator.CombineRowsList(detailed_list, Regions_list)
 
-	# If phred score filtering option is turned on the phred filtered detailed coverage list is fomrated by merging rows  
+	# If the filtering option is turned on the filtered detailed coverage list is fomrated by merging rows  
 	if args.phred_score_mapQ and not(args.phred_score_mapQ[0]=='all'):
 		PhredRegionNames, det_list_filtered_formated, splice_phred = CombineRows_generator.CombineRowsList(detailed_list_filter, Regions_list)
 
 	if args.strandSpecific:
-		# If strand specific option turned on  the negative and positive strand coverage detail lists are formated by merging rows
+		# If strand specific option turned on the negative and positive strand coverage detailed lists are formated by merging rows
 		PosRegionNames, detailed_list_positive_formated, splice_pos = CombineRows_generator.CombineRowsList(detailed_list_positive, Regions_list)
 		NegRegionNames, detailed_list_negative_formated, splice_neg = CombineRows_generator.CombineRowsList(detailed_list_negative, Regions_list)
 
 
 
 ###################### Create mean coverage regions list ##############################################################################################
-# The sub regions in the list are all under or over the first coverage depth threshold. In the Mean coverage short list only the sub regions below the 
-# chosen coverege depth threshold are kept. 
+# In the Mean coverage list subregions including values all above the coverage threshold or all bellow is saved from the per base coverage list.
+# From the mean coverage list only the low covarge subregions is saved to a new short mean coverage list. 
 # Example: detailed coverage list = [1, 1, 1, 4, 5, 2, 2] and if the coverage threshold is = 3 
 # 	=> Mean coverage list = [[start = 0, stop = 3, mean = 1], [3, 5, 4.5], [5, 7, 2]]
 # 	=> The short mean list = [[0,3,1],[5,7,2]] 
@@ -262,18 +256,18 @@ info_list =[]
 info_temp=[]
 mean_index=0
 
-if args.ExonTranscript: # Adds exon number, transcript and chromosome
+if args.ExonTranscript: # Adds exon number, transcript and chromosome. Extract information from the region name
 	for element in Regions_list:
 		info_temp = element.split('.')
 		info_temp = [info_temp[2], info_temp[4], info_temp[5]]
 		info_list.append(info_temp)
-	mean_index=5
+		mean_index=5
 
-else: # Only add the chromosome not exon and transcript
+else: # Only add the chromosome not exon and transcript, extract chromosome from the bed file column
 	for element in Regions:
 		info_temp = element[0]
-		info_list.append([info_temp])	
-	mean_index=3
+		info_list.append([info_temp])
+		mean_index=3
 
 
 # Create the Mean coverage list
@@ -290,7 +284,7 @@ for line in detailed_list:
 	MeanCov_List.append(Row_temp)
 	index += 1
 
-# Merge the regional rows in the mean coverage list generated above, so that regions from the same for example gene is merged. Only if combinerows is activated
+# Merge the region rows in the mean coverage list generated above, so that regions from the same for example gene is merged. Only if combinerows is activated
 if args.combineRows:
 	import CombineRows_generator
 	MeanNames, MeanCoverage_formated, splice_meanList = CombineRows_generator.CombineRowsList(MeanCov_List, Regions_list) 
@@ -327,8 +321,7 @@ for line in Mean_full_list:
 ################################# Known low regions as input (OPTIONAL) #########################################
 
 if args.lowRegions:
-	
-	#Extract the name of the low regions
+	#Extract the name and information of the low regions
 	name_lowRegions=[]
 	lowRegions=[]
 	with open(str(args.lowRegions), "r") as myfile:
@@ -339,7 +332,7 @@ if args.lowRegions:
 
 	myfile.close()
 
-	# Save the inices of the low regions this will be added to the mean list and the region figure
+	# Save the indices of the low regions this will be added to the mean short list and the region figure
 	index=0
 	count=0
 	index_low=0
@@ -348,21 +341,20 @@ if args.lowRegions:
 	for name in MeanNames:
 
 		for low_name in name_lowRegions:
-			if str(name) == str(low_name):
 
+			if str(name) == str(low_name):
 				Low_region_compare = lowRegions[index_low]
 				index_low+=1
 
 				for line in Mean_Short_w_sublists[index]:
-
-					if str(line[0]) == Low_region_compare[0] and line[mean_index-2]==Low_region_compare[1] and line[mean_index-1]==Low_region_compare[2]:
+					if str(line[mean_index-3]) == str(Low_region_compare[0]) and int(line[mean_index-2])==int(Low_region_compare[1]) and int(line[mean_index-1])==int(Low_region_compare[2]):
 
 						LowRegionIndex.append([index, count])
 					count+=1
 				count=0	
 		index+=1
 
-	# Add the low regions as the column known in Mean short with low regions
+	# Add the low regions as a column in Mean coverage short list
 
 	Mean_Short_with_lowRegionInfo = []
 	Temp_row=[]
@@ -372,8 +364,10 @@ if args.lowRegions:
 
 	for line in Mean_Short_w_sublists:
 		for element in line:
+
 			if index_low < len(LowRegionIndex):
 				Low_line = LowRegionIndex[index_low]
+
 				if int(index_line) == int(Low_line[0]) and int(index_element) == int(Low_line[1]):
 					Temp_row += element + ['Yes']
 					index_low+=1
@@ -389,54 +383,92 @@ if args.lowRegions:
 		index_line+=1
 		index_element=0
 
+
 ################################ Hotspot list as input (OPTIONAL)
 
 if args.hotspot:
 	name_hotspots=[]
 	hotspots=[]
 
-	# Extract the name of the hotspot bed list
+	# Extract the name and information of the hotspots
+
 	with open(str(args.hotspot), "r") as myfile:
 		for line in myfile:
 			element = line.strip('\n').split('\t')
-			name_lowRegions.append(element[3])
+			name_hotspots.append(element[3])
 			hotspots.append([element[0], element[1], element[2], element[3]])
 	myfile.close()
-	
+
+
+	#Calculate the new start positions of the hotspots that will be used in the region figure. The new start indices is the number of bases before the hotspot in the same region
+	if args.combineRows:
+		start_positionlist=[]
+		length_sum=0
+		index=0
+		for hline in hotspots:
+			for region in Regions:
+				if str(region[3].split('.')[0])==str(hline[3]): 
+
+					if int(hline[2]) > int(region[2]):
+						length_sum+=(int(region[2])-int(region[1]))
+					if int(hline[1]) > int(region[1]) and int(hline[1]) <= int(region[2]):
+						length_sum+=int(hline[2])-int(region[1])
+
+			start_positionlist.append(length_sum)
+			length_sum=0
+			index+=1
+
+	else:
+		start_positionlist=[]
+		length_sum=0
+		index=0
+		for hline in hotspots:
+			for region in Regions:
+				if str(region[3])==str(hline[3]): 
+
+					if int(hline[2]) > int(region[2]):
+						length_sum+=(int(region[2])-int(region[1]))
+					if int(hline[1]) > int(region[1]) and int(hline[1]) <= int(region[2]):
+						length_sum+=int(hline[2])-int(region[1])
+
+			start_positionlist.append(length_sum)
+			length_sum=0
+			index+=1
+
+
+	# Save the indices of the hotspots this will be used for the region figure, [row index, index of subregion, start index in region]  
+	start_index=0
 	index=0
 	count=0
 	index_hotspot=0
 	hotspotIndex=[]
 	counter_start_pos=0
 
-
-	# Save the indices of the hotspots this will be used for the region figure
 	for mean_name in MeanNames:
 
 		for hot_name in name_hotspots:
 			if str(mean_name) == str(hot_name):
-
 				hotspots_compare = hotspots[index_hotspot]
 				index_hotspot+=1
 
 				for line in Mean_Short_w_sublists[index]:
+					if str(line[mean_index-3]) == str(hotspots_compare[0]) and int(line[mean_index-2]) <= int(hotspots_compare[1]) and int(line[mean_index-1]) >= int(hotspots_compare[2]):
 
-					if str(line[0]) == hotspots_compare[0] and line[mean_index-2] <= hotspots_compare[1] and line[mean_index-1] >= hotspots_compare[2]:
-						# Save the row index of the name of the region with a hotspot together with the sub region index and the start position of the hotspot
-						counter_start_pos = int(hotspots_compare[2]) - int(line[mean_index-2])
-						hotspotIndex.append([index, count, counter_start_pos])
+						hotspotIndex.append([index, count, start_positionlist[start_index]])
+						start_index+=1
+
 					count+=1
 
-				count=0	
+				count=0
 		index+=1
 
 			 
 
 ###################### Create statistics table #####################################################################################################
-# Uses the detailed coverage list (formated if combineRows setting is turned on) reports coverage breadth over the choosen coverage depth cut off values. 
-#The statistics table can also contain results from a phred filtered bam file and an optional validation column. 
-# The validation option checks if 95% coverage bredth or more at the first X cut off value. If under 95% the column is marked with **** 
-# and the region is added to the validation list. If the strand specific option is turned on an additional statistics table with strand specific reads is generated.
+# Uses the detailed coverage list and reports coverage breadth at and over the choosen coverage depth thresholds. 
+# The statistics table can also contain additional results from a filtered bam file and an optional validation column. 
+# The validation option checks if 95% coverage bredth or more at the first coverage threshold value. If under 95% the column is marked with **** and the
+# region is added to the validation list. If the strand specific option is turned on an additional statistics tables with strand specific reads are generated.
 
 print("Generating Statistics table ...")
 
@@ -472,8 +504,10 @@ else:
 
 	
 import Statistics_generator
+
 # Compute statistics table 	
 stat_table, stat_table_filter, validation_list = Statistics_generator.stat_table(detailed_list_stat, Stat_table_names, args.validation, phred_score, detailed_filt_stat, args.X_Cut_off_list, Region_info, dataType)    
+
 # Compute the strand specific statistics tables
 if args.strandSpecific:
 	stat_table_positive, stat_table_phred_positive, validation_list_positive = Statistics_generator.stat_table(detailed_positive, Stat_table_names, args.validation, False, [], args.X_Cut_off_list, Region_info, dataType)
@@ -504,20 +538,48 @@ Logg.append(["Coverage analysis run by: ", args.executedBy])
 # Add the region and reads files used
 Region_fileName = args.Regions
 Reads_fileName = args.Reads
-Logg.append(["Region file (bedfile): ", Region_fileName])
-Logg.append(["Read file (bamfile): ", Reads_fileName])
+Logg.append(["Region file (BED file): ", Region_fileName])
+Logg.append(["Read file (BAM file): ", Reads_fileName])
 Logg.append(["Output folder and file name:", args.output_folder_name[0], args.output_folder_name[1]])
+Logg.append([" "])
+
 # Add the chosen coverage depth thresholds
 Logg.append(["Coverage depth thresholds: ", args.X_Cut_off_list[0], args.X_Cut_off_list[1], args.X_Cut_off_list[2]])
 
+# Calculate the mean coverage breadth for the columns in the statistics table and add to the logg file
+stat_temp1 = 0.0
+stat_temp2 = 0.0
+stat_temp3 = 0.0
+
+for line in stat_table:
+	stat_temp1 += line[2]
+	stat_temp2 += line[3]
+	stat_temp3 += line[4]
+
+Logg.append(["Mean Coverage Breadth: ", round(float(stat_temp1)/float(len(stat_table)),2),round(float(stat_temp2)/float(len(stat_table)),2), round(float(stat_temp3)/float(len(stat_table)),2)])
+
+#Calulate the total mean coverage and add to the log file
+Total_Mean_Cov = 0
+count=0
+
+for line in Mean_full_list: 
+	for element in line:
+		Total_Mean_Cov += element[mean_index]
+		count+=1
+
+Total_Mean_Cov = round(float(Total_Mean_Cov)/float(count),2)
+Logg.append(["Mean Coverage Depth: ", str(Total_Mean_Cov) + ' X'])
+
 # Optional input:
 
-# Phres score
+Logg.append([" "])
+
+# filter option of bam file
 if args.phred_score_mapQ:
 	if str(args.phred_score_mapQ[0])=="all":
-		Logg.append(["Choosen phred score: ", phred_score, "Choosen mapQ: ", mapQ, "Used in all calculations"])
+		Logg.append(["Phred score: ", phred_score, "mapQ: ", mapQ, "Used in all calculations"])
 	else:
-		Logg.append(["Choosen phred score: ", phred_score, "Choosen pmapQ: ", mapQ, "Used only in an additional row in the statistics table"])
+		Logg.append(["Phred score: ", phred_score, "mapQ: ", mapQ, "Used only in an additional row in the statistics table"])
 
 if args.ownInput:
 	Logg.append(["Samtools command: ", args.ownInput])
@@ -528,18 +590,18 @@ if args.validation:
 
 # Combine rows
 if args.combineRows:
-	Logg.append(["Combined region rows in bedfile"])
+	Logg.append(["Combine regions activated"])
 
 # Generation of figures
 if args.figures:
 	Logg.append(["Figures generated"])
 	# If hotspots been added to the region figure
 	if args.hotspot: 
-		Logg.append(["Hotspots added to the region figure"]) # add what hotspot list that was used
+		Logg.append(["Hotspots added"]) # add what hotspot list that was used
 
 # If exon and transcript has been added to the mean coverage list
 if args.ExonTranscript:
-	Logg.append(["Exon and transcript added to mean region lists"])
+	Logg.append(["Exon and transcript added"])
 
 # If a list of low regions was given and an additional column was added to the mean coverage list
 if args.lowRegions:
@@ -549,43 +611,29 @@ if args.lowRegions:
 if args.detailedCoverage:
 	Logg.append(["Per base coverage depth list generated"])
 
-Logg.append(["Calculations:"])
+# If strand specific reads are generated
+if args.strandSpecific:
+	Logg.append(["Strand specific tables generated"])
 
-#Calulate the total mean coverage and add to the logg file
-Total_Mean_Cov = 0
-count=0
-
-for line in Mean_full_list: 
-	for element in line:
-		Total_Mean_Cov += element[mean_index]
-		count+=1
-
-Total_Mean_Cov = round(float(Total_Mean_Cov)/float(count),2)
-Logg.append(["Mean coverage width:", str(Total_Mean_Cov) + ' X'])
 	
-# Calculate the mean coverage breadth for the columns in the statistics table and add to the logg file
-stat_temp1 = 0.0
-stat_temp2 = 0.0
-stat_temp3 = 0.0
-
-for line in stat_table:
-	stat_temp1 += line[2]
-	stat_temp2 += line[3]
-	stat_temp3 += line[4]
-Logg.append(["Mean coverage breadth at: ",  args.X_Cut_off_list[0], args.X_Cut_off_list[1], args.X_Cut_off_list[2]])
-Logg.append(["", round(float(stat_temp1)/float(len(stat_table)),2),round(float(stat_temp2)/float(len(stat_table)),2), round(float(stat_temp3)/float(len(stat_table)),2)])
 
 
 ######################################## Figures ######################################################################################################
 if args.figures == True:
 
-	# Diside what detailed coverage list and region name list to use, depending on if combined rows is turned on or not 
+	# Choose what detailed coverage list and region name list to use
 	if args.combineRows:
 		list_for_figures = detailed_list_formated
 		Names_for_figures = RegionNames
+
 	else:
 		list_for_figures = detailed_list
-		Names_for_figures = Regions_list
+		Names_for_figures=Regions_list
+		Names_for_regionfig=[]
+
+		for name in Regions_list:
+			Names_for_regionfig.append(name.split('.')[0])
+
 
 	##### PIE CHART #######################################################################################################################################
 	print("Generating figures ...")
@@ -616,11 +664,11 @@ if args.figures == True:
 			if int(element) < int(args.X_Cut_off_list[0]):
 				cov_under+=1
 
-		# Only create pie charts with lines that has a some position under the coverage threshold
+		# Only create pie charts with lines that has some position under the coverage threshold
 		if not(int(cov_under) == 0):	
 			fig = PieChart.Generate_Pie(line, args.X_Cut_off_list[0], index_order, fig, Names_for_figures[Name_index], text_size)
 
-			# when 4 pie charts exists in the figure they are saved in an indexed pdf file
+			# when 4 pie charts exists in the figure they are saved in a pdf file
 			if index_order==4:
 				# Save the pie charts as a PDF 
 				fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_pie_' + str(image_count) + '.pdf')
@@ -631,7 +679,7 @@ if args.figures == True:
 		cov_under=0
 		Name_index+=1
 
-	# Make sure that the last image is printed even if there is less that 4 pie charts in it
+	# Make sure that the last image is printed even if there is less than 4 pie charts in it
 	if not(fig == None): 
 		fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_pie_' + str(image_count) + '.pdf')
 
@@ -639,7 +687,7 @@ if args.figures == True:
 
 	if args.combineRows:
 
-		# Create a list with subpart names that is used as x-axis labels for each bar and a .....
+		# Create a list with subpart names that is used as x-axis labels for each bar
 		import Subpart_names 
 		subpartNames, detailed_list_formated_bar = Subpart_names.bar_names_generator(detailed_list, Regions_list)
 		
@@ -668,7 +716,6 @@ if args.figures == True:
 					image_count+=1
 				index_order+=1
 			Name_index+=1
-			#print(bellow)
 			bellow=0
 
 		# Make sure that the last image is printed even if there is less that 4 pie charts in it
@@ -676,8 +723,6 @@ if args.figures == True:
 			fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Cov_bar_' + str(image_count) + '.pdf')
 
 	###### Per region coverage plot ###############################################################################################################
-
-	print("Generating region figure ...")
 
 
 	############## Create text list for regions, this will be printed next to the region plots
@@ -705,7 +750,6 @@ if args.figures == True:
 	index_order = 1
 	image_count = 1
 	count_under = 0
-	#count=1
 	only_under_index = 0
 	data = []
 	column =[]
@@ -713,62 +757,65 @@ if args.figures == True:
 	fig = plt.figure()
 	splice_index=0
 	hotspots_arrows=[]
-	hotspot_index=0
 
 	if splice == None: 
 		splice=[]
 
+	# Create a region figure for all regions that has coverage values below the threshold
 	for line in list_for_figures:
+
 		for element in line: 
+
 			if int(element) < int(args.X_Cut_off_list[0]):
 				count_under+=1
 
 		if int(count_under) > 0:
 
+			# if the hotspot option is active find all hotspots for the current region and save the start position of those in hotspots_arrow
 			if args.hotspot:
-				if hotspot_index < len(hotspots):
-					for hs_line in hotspotIndex:
-						if int(Name_index) == int(hs_line[0]):
-							hotspots_arrows.append(hs_line[2])
-					hotspot_index+=1
+				for hs in hotspotIndex:
+					if int(hs[0]) == int(Name_index):
+						hotspots_arrows.append(int(hs[2]))
 
+			# Generate the figure, with splice if combined rows otherwise splice is set to false
 			if args.combineRows:
 				fig = Region_position_plot.Region_generator_plot(line, Names_for_figures[Name_index], args.X_Cut_off_list[0], index_order, fig, splice[splice_index], hotspots_arrows)
 			else:
-				fig = Region_position_plot.Region_generator_plot(line, Names_for_figures[Name_index], args.X_Cut_off_list[0], index_order, fig, False, hotspots_arrows)
+				fig = Region_position_plot.Region_generator_plot(line, Names_for_regionfig[Name_index], args.X_Cut_off_list[0], index_order, fig, False, hotspots_arrows)
 			hotspots_arrows=[]
 			index_order+=1
 
+			# The images is saved as a PDF with 2 regions figures and 2 tables next to the figures, 4*4 image
 			ax = fig.add_subplot(2,2,index_order)
 
+			# Append the data for the region figure table
 			for element in Text_list[only_under_index]:
 				data.append(element)
 
+			# Define the labels in the table
 			if not(args.ExonTranscript):	
-				column = ['Chr','start', 'stop', 'mean','length']
+				column = ['Chr','Start', 'Stop', 'Mean','Length']
 			else:
-				column = ['Chr', 'exon', 'transcript','start', 'stop', 'mean', 'length']
+				column = ['Exon', 'Transcript', 'Chr', 'Start', 'Stop', 'Mean', 'Length']
 
+			# Name the low regions, first region is called R1 next R2 etc. 
 			for i in range(len(data)):
 				rows.append('R' +  str(i+1))
 
-			# If low regions are sent as input, add blue color to any line in the table containg a known to be low region
+			# If low regions are sent as input, add red color to any line in the table containg a known to be low region
 			color=[]
-			line_index=0
-			index_low=0
-			low_line=[]
+			lowregions_conter=0
+
 			if args.lowRegions:
-				for row in data:
-					if int(index_low) < int(len(LowRegionIndex)):
-						Low_line=LowRegionIndex[index_low]
-						if int(line_index) == int(Low_line[1]):
-							color.append('tomato')
-							index_low+=1
-						else:
-							color.append('white')
+				for row_data in data:
+					for low_row in lowRegions:
+						if str(row_data[mean_index-3]) == str(low_row[0]) and int(row_data[mean_index-2]) == int(low_row[1]) and int(row_data[mean_index-1]) == int(low_row[2]):
+							lowregions_conter=1
+					if lowregions_conter==1:
+						lowregions_conter==0
+						color.append('tomato')
 					else:
 						color.append('white')
-					line_index+=1
 
 			if color==[]:
 				fig_table = ax.table(cellText= data, rowLabels = rows, colLabels = column, loc='center')
@@ -776,9 +823,10 @@ if args.figures == True:
 				fig_table = ax.table(cellText= data, rowLabels = rows, colLabels = column, loc='center', rowColours=color)
 			data=[]
 			rows=[]
+			color=[]
 			ax.axis('off')
 
-					
+			# Save the figures to a PDF		
 			if index_order == 4:
 				fig.savefig(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + 'RegionCoverage_' + str(image_count) + '.pdf')
 				fig = plt.figure()
@@ -810,21 +858,22 @@ with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1])
 	wr = csv.writer(myfile)
 
 	if args.validation:
-		wr.writerow(['Data type','Region name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'Validation'])
+		wr.writerow(['Data type','Region Name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'Validation'])
 	else:
-		wr.writerow(['Data type','Region name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X'])
+		wr.writerow(['Data type','Region Name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X'])
 	for row in stat_table:
 		wr.writerow(row)
 		if args.phred_score_mapQ and not(str(args.phred_score_mapQ[0])) == "all":
 			wr.writerow(stat_table_filter[index])
 			index+=1
 myfile.close()
+
 ###### Save the positive strand specific statistics table to a csv file
 if args.strandSpecific:
 	index=0
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Stat_table_positiveStrand.csv', 'w') as myfile:
 		wr = csv.writer(myfile)
-		wr.writerow(['Region name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'strand difference'])
+		wr.writerow(['Region Name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'Strand difference'])
 		for row in Stat_table_positive_final:
 			wr.writerow(row)
 	myfile.close()
@@ -834,7 +883,7 @@ if args.strandSpecific:
 	index=0
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Stat_table_negativeStrand.csv', 'w') as myfile:
 		wr = csv.writer(myfile)
-		wr.writerow(['Region name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'strand difference'])
+		wr.writerow(['Region Name', str(args.X_Cut_off_list[0]) +'X', str(args.X_Cut_off_list[1])+'X', str(args.X_Cut_off_list[2])+'X', 'Strand difference'])
 		for row in Stat_table_negative_final:
 			wr.writerow(row)
 	myfile.close()
@@ -848,14 +897,14 @@ with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1])
 	wr =csv.writer(myfile)
 	if args.ExonTranscript:
 		if args.lowRegions:
-			wr.writerow(['Region name', 'chr', 'exon', 'transcript', 'start', 'stop', 'Mean Coverage', 'length', 'known'])
+			wr.writerow(['Region Name', 'Exon', 'Transcript', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length', 'Known'])
 		else:
-			wr.writerow(['Region name', 'chr', 'exon', 'transcript', 'start', 'stop', 'Mean Coverage', 'length'])
+			wr.writerow(['Region Name', 'Exon', 'Transcript', 'Chr','Start', 'Stop', 'Mean Coverage', 'Length'])
 	else:
 		if args.lowRegions:
-			wr.writerow(['Region name', 'chr', 'start', 'stop', 'Mean Coverage', 'length', 'known'])
+			wr.writerow(['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length', 'Known'])
 		else: 
-			wr.writerow(['Region name', 'chr', 'start', 'stop', 'Mean Coverage', 'length'])
+			wr.writerow(['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length'])
 
 	for row in MeanCov_shortList:
 		if not(row == []):
@@ -871,55 +920,49 @@ myfile.close()
 ###### save Mean Coverage Full List to csv file
 
 index=0
+rowtemp=[]
+index_2=0
+
 with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_MeanCoverageFullList.csv', 'w') as myfile:
 	wr= csv.writer(myfile)
 
-	if args.ExonTranscript:
-		if args.lowRegions:
-			wr.writerow(['Region name', 'chr', 'exon', 'transcript', 'start', 'stop', 'Mean Coverage', 'length', 'known'])
+	wr.writerow(['Region Name', 'Chr', 'Start', 'Stop', 'Mean Coverage', 'Length'])
 
-			for row in MeanCov_List:
-				wr.writerow([Regions_list[index]] + row[0])
-				index+=1
+	for row in MeanCov_List:
 
-		else:
-			wr.writerow(['Region name', 'chr', 'exon', 'transcript', 'start', 'stop', 'Mean Coverage', 'length'])
+		if int(len(row)) > 1:
 
-			for row in MeanCov_List:
-				wr.writerow([Regions_list[index]] + row[0])
-				index+=1
-	else:
-		if args.lowRegions:
-			wr.writerow(['Region name', 'chr', 'start', 'stop', 'Mean Coverage', 'length', 'known'])
+			for element in row:
+				rowtemp+=row[index_2]
+				index_2+=1
+			wr.writerow([Regions_list[index]] + rowtemp)
+			rowtemp=[]
+			index_2=0
 
-			for row in MeanCov_List:
-				wr.writerow([Regions_list[index]] + row[0])
-				index+=1
-		else: 
-			wr.writerow(['Region name', 'chr', 'start', 'stop', 'Mean Coverage', 'length'])
+		else:	
+			wr.writerow([Regions_list[index]] + row[0])
+			
+		index+=1
 
-			for row in MeanCov_List:
-				wr.writerow([Regions_list[index]] + row[0])
-				index+=1
 
 myfile.close()
 
-##### Save the logg file to csv file
+##### Save the log file to csv file
 
-with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Logg.csv', 'w') as myfile:
+with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Log.csv', 'w') as myfile:
 	wr = csv.writer(myfile)
-	wr.writerow(['LOGG'])
+	wr.writerow(['LOG'])
 	for line in Logg:
 		wr.writerow(line)
 myfile.close()
 
 # Save the validation list for the original statistics table to a csv file
 
-if args.validation:
+if args.validation and not(validation_list == None):
 
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_Validation_list.csv', 'w') as myfile:
 		wr = csv.writer(myfile)
-		wr.writerow(['Region name', '% Coverage at: ' + str(args.X_Cut_off_list[0])+ ' X', 'Chr', 'Start', 'Stop', 'length']) 
+		wr.writerow(['Region Name', '% Coverage at: ' + str(args.X_Cut_off_list[0])+ ' X', 'Chr', 'Start', 'Stop', 'Length']) 
 		for line in validation_list:
 			wr.writerow(line)
 	myfile.close()
@@ -934,7 +977,7 @@ if args.detailedCoverage:
 
 	with open(str(args.output_folder_name[0]) + "/"+ str(args.output_folder_name[1]) + '_PerBaseCoverage.csv', 'w') as myfile:
 		wr =csv.writer(myfile)
-		wr.writerow(['Region name', 'Chr', 'Start', 'Stop','Coverage Depth'])
+		wr.writerow(['Region Name', 'Chr', 'Start', 'Stop','Coverage Depth'])
 		for line in detailed_list: 
 			line = Region_info_det[index] + line
 			wr.writerow(line)
