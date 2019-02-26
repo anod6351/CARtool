@@ -9,8 +9,6 @@ def bar_plot_generator(data_list, C_threshold, index, fig, RegionNames, titleNam
 
 	# Checks if the exon numbers are added in growing order else reverse the data list with each regions covareg values and the region names  
 
-	#if isinstance(RegionNames[0], int) and isinstance(RegionNames[1], int):
-	#	print('yes')
 	if int(len(RegionNames)) > 1 and int(RegionNames[1]) < int(RegionNames[0]):
 			data=list(reversed(data_list))
 			RegionNames=list(reversed(RegionNames))
@@ -23,6 +21,8 @@ def bar_plot_generator(data_list, C_threshold, index, fig, RegionNames, titleNam
 	under_count=0 # variable to store the temporary number of base pairs below the threshold
 	data_over = [] # list of amounts over threshold values
 	data_under = [] # list of amounts under threshold values
+	regionName_index=0
+	RegionNamePrint=[]
 
 	# Compute the fraction of values under and over coverage depth threshold for all regions in the data list, (one line in the bedfile or several merged lines if combine rows was activated)
 	for line in data:
@@ -32,12 +32,17 @@ def bar_plot_generator(data_list, C_threshold, index, fig, RegionNames, titleNam
 			else:
 				over_count+=1
 		# Only adds the bar with a score below 
-		#if int(under_count) > 0:
-		data_over.append(round((float(over_count)/float(len(line))),1) * 100)
-		data_under.append(round(float(under_count)/float(len(line)),1) * 100)
+		if int(under_count) > 0:
+			data_over.append(round((float(over_count)/float(len(line))),1) * 100)
+			data_under.append(round(float(under_count)/float(len(line)),1) * 100)
+			RegionNamePrint.append(RegionNames[regionName_index])
+		
 		# Reset temporary variables to 0 for next line calculations
 		under_count=0
 		over_count=0
+
+		# Increase the Region Name index to jump tp the next region name, exon information
+		regionName_index+=1
 
 	# Creat list with x coordinate positions for each bar
 	x_position =[] 
@@ -57,9 +62,10 @@ def bar_plot_generator(data_list, C_threshold, index, fig, RegionNames, titleNam
 	
 	ax.set_ylim(0,100) # Set the limit on the y axis to 100, 100% is always the maximum
 	ax.set_title(titleName) # Set the name of the figure, placed above 
+
 	if len(data_list)> 10:
-		plt.xticks(x_position, RegionNames, fontsize='xx-small')
+		plt.xticks(x_position, RegionNamePrint, fontsize='xx-small')
 	else:
-		plt.xticks(x_position, RegionNames) # Add the region names or exon number for example to the x axis
+		plt.xticks(x_position, RegionNamePrint) # Add the region names or exon number for example to the x axis
 
 	return fig
