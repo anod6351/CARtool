@@ -1,3 +1,4 @@
+# Generate statistics table of coverage breadth values at the three given coverage depth thresholds
 
 def stat_table(coverage_list, RegionNames, validation, phred_score, coverage_phred, X_Cut_off_list, RegionInfo, dataType):
 
@@ -57,7 +58,7 @@ def stat_table(coverage_list, RegionNames, validation, phred_score, coverage_phr
 				if int(element) >= int(X_Cut_off_list[2]):
 					Tresh_3_p+=1
 
-			s_table_phred.append(['Phred score',RegionNames[count], round(float(Tresh_1_p)/float(len(line)),2), round(float(Tresh_2_p)/float(len(line)),2), round(float(Tresh_3_p)/float(len(line)),2)])
+			s_table_phred.append(['filtered',RegionNames[count], round(float(Tresh_1_p)/float(len(line)),2), round(float(Tresh_2_p)/float(len(line)),2), round(float(Tresh_3_p)/float(len(line)),2)])
 
 			Tresh_1_p = 0
 			Tresh_2_p = 0
