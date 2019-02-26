@@ -46,7 +46,7 @@ parser.add_argument("-d", "--detailedCoverage", action="store_true", help="Outpu
 args = parser.parse_args()
 
 # The current program version
-ProgramVersion = "Program Verion 1.0"
+ProgramVersion = "Program Version 1.0"
 
 
 ########################### Check that all mandatory parameter input is given
