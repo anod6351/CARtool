@@ -1,10 +1,7 @@
 # CARtool
 Coverage Analysis Report tool
 CAR tool is a tool for assessment of per base quality of NGS data. The tool generates lists, tables and figures that can be used to evaluate coverage depth and breadth over regions of interest. 
-It is of great importance that each base pair in these regions is sequenced properly since only one mistake could lead to a different diagnosis. 
-CAR tool both presents the data to decide on quality while also aid the clinicians by presenting the data in a compact and comprehensive way. 
-CAR tool is especially created to deal with the lack of clinically appropriate coverage analytical tools. It is a comprehensive and easy to use tool for both clinicians and bioinformatics. 
-Flexible with multiple optional settings that adapt the output based on the users’ needs with lists, tables and figures. 
+It is of great importance that each base pair in these regions is sequenced properly since only one mistake could lead to a different diagnosis. CAR tool both presents the data to decide on quality while also aid the clinicians by presenting the data in a compact and comprehensive way. CAR tool is especially created to deal with the lack of clinically appropriate coverage analytical tools. It is a comprehensive and easy to use tool for both clinicians and bioinformatics. Flexible with multiple optional settings that adapt the output based on the users’ needs with lists, tables and figures. 
 
 For further reading about the tool I refer to my master thesis “Coverage Analysis in Clinical Next-Generation Sequencing”.
 
