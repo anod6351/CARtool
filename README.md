@@ -48,15 +48,20 @@ Optional input:
 
 Standard output:
 
-1. Full mean list of sections below and over the first entered coverage threshold value. All base pair coverage values are evaluated for every ROI or gene and are used to create new sub regions. The sub region consists of all adjacent base pair position either above or under the threshold. For each sub region the coverage mean is calculated.   
+1. Full mean list of sections below and over the first entered coverage threshold value. All base pair coverage values are evaluated for every ROI or gene and are used to create new sub regions. The sub region consists of all adjacent base pair position either above or under the threshold. For each sub region the coverage mean is calculated. 
+
 2. Short mean list is extracted from the full mean list. Only sub regions below the coverage threshold are saved in this shorter list. If the ROI or gene has no sub regions below the coverage threshold they will not be in the list. 
+
 3. Statistics table with coverage breadth values for each ROI or gene. The coverage breadth is calculated from the 3 threshold values in the input. The original statistics table is not strand specific, but if this choice is activated two additional statistical tables one for each option are generated.
+
 4. Log file, a record of what files that was used, who run the analysis, used settings together with calculations of the total coverage mean value and total mean of coverage breadth values. 
 
 Optional output:
 
 1.Validation list, list of ROIs that has less than 95% coverage in the first column of the statistics table. These are marked with stars in the statistics table if the validation option is turned on. 
+
 2. Strand specific tables, two additional statistics table is generated one for only positive reads and one for only negative reads. The last column in each table indicates the difference in coverage breadth.
+
 3. Phred score and mapQ filtering of the bam file. The filtered coverage depths are either used for the whole analysis or only in the statistics table, added as a row under each ROI. The option, -p all value1 value2, is used if the whole analysis is to be run with the filtered bam file while -p value1 value2 only uses the filtered bam file as additional rows in the statistics table. 
 
 4. Figures
